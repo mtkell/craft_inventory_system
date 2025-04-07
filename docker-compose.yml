@@ -1,0 +1,39 @@
+version: '3.9'
+
+services:
+  backend:
+    build: ./backend
+    container_name: craft-backend
+    networks:
+      - nginx-proxy       # exposed to NGINX Proxy Manager
+      - craft_inventory_backend  # access to DB
+    environment:
+      VIRTUAL_HOST: inventory.yourdomain.com
+      VIRTUAL_PORT: 8000
+      LETSENCRYPT_HOST: inventory.yourdomain.com
+      LETSENCRYPT_EMAIL: your-email@example.com
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:16
+    container_name: craft-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: inventory
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - craft_inventory_backend
+    restart: unless-stopped
+
+networks:
+  nginx-proxy:
+    external: true  # created by NGINX Proxy Manager
+  craft_inventory_backend:
+    driver: bridge
+
+volumes:
+  postgres_data:
