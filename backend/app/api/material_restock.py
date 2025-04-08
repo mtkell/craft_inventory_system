@@ -15,8 +15,49 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/restock/")
-def restock_material(data: MaterialRestockRequest, db: Session = Depends(get_db)):
+@router.post("/restock/", tags=["Materials"])
+def restock_material(
+    data: MaterialRestockRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Restock a material in the inventory.
+
+    - **material_id**: The ID of the material to be restocked.
+    - **quantity**: The amount of material to be added to inventory.
+    - **note**: An optional note describing the restock.
+
+    **Example Request**:
+    ```json
+    {
+        "material_id": 1,
+        "quantity": 50,
+        "note": "Manual restock"
+    }
+    ```
+
+    **Example Response**:
+    ```json
+    {
+        "status": "success",
+        "message": "Material 'Material A' restocked by 50. New total: 150"
+    }
+    ```
+
+    **Error Response** (Material not found):
+    ```json
+    {
+        "detail": "Material not found"
+    }
+    ```
+
+    **Error Response** (Database error):
+    ```json
+    {
+        "detail": "Failed to restock material due to database error."
+    }
+    ```
+    """
     try:
         with db.begin():
             material = db.query(Material).filter(Material.id == data.material_id).first()
